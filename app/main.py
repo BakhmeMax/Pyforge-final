@@ -85,7 +85,6 @@ def print_df(df):
     pd.set_option('display.max_columns', None)
     pd.set_option('display.width', None)
     pd.set_option('display.max_colwidth', 14)
-    logging.info(f"Print DataFrame")
     print(df)
 
 
@@ -95,7 +94,9 @@ def create_table(db_engine):
     :param db_engine: MockConnection. Sqlalchemy engine to database.
     :return: None.
     """
+    logging.debug(f"Check if table {table_name} exist")
     if not db_engine.dialect.has_table(db_engine.connect(), table_name):
+        logging.debug(f"Creating table {table_name}")
         metadata = MetaData(db_engine)
         Table(table_name, metadata,
               Column('compound', String),
@@ -107,9 +108,11 @@ def create_table(db_engine):
               Column('cross_links_count', Integer),
               )
         metadata.create_all()
+    logging.info(f"Table {table_name} exist")
 
 
 def main(*args, **kwargs):
+    logging.info(f"Start program")
     # List of compounds from task
     compounds = ['ADP', 'ATP', 'STI', 'ZID', 'DPM', 'XP9', '18W', '29P']
     # List of columns of DataFrame
@@ -133,13 +136,17 @@ def main(*args, **kwargs):
     print_df(df)
 
     # Create SQLalchemy engine to postgreSQL
+    logging.info(f"Create SQLalchemy engine to {db_host} {db_name}")
     db_engine = create_engine(db_url)
 
     # Create table if not exist
     create_table(db_engine)
 
     # Insert DataFrame to existed table
+    logging.info(f"Insert DataFrame into table {table_name}")
     df.to_sql(table_name, con=db_engine, index=False, if_exists='append')
+
+    logging.info(f"End program")
 
 
 if __name__ == "__main__":
